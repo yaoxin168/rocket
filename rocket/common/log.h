@@ -4,6 +4,7 @@
 #include <string>
 #include <queue>
 #include <memory>
+#include <semaphore.h>
 #include "rocket/common/config.h"
 #include "rocket/common/mutex.h"
 
@@ -29,23 +30,29 @@ std::string formatString(const char* str, Args&&... args){
 //"__va__args__"是可变参数占位符，与格式化字符串str组成完整的字符串
 //加上##作用：当可变参数的个数为0时，##可以把前面多余的”，“去掉，否则编译出错
 //下面根据全局日志级别判断是否输出
+
 #define DEBUGLOG(str, ...)\
     if(rocket::Logger::GetGlobLogger()->getLogLevel() <= rocket::Debug)\
     {\
-        rocket::Logger::GetGlobLogger()->pushlog((new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + "[" + std::string(__FILE__) +":"+std::to_string( __LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+        rocket::Logger::GetGlobLogger()->pushlog((rocket::LogEvent(rocket::LogLevel::Debug)).toString() \
+        + "[" + std::string(__FILE__) +":"+std::to_string( __LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
         rocket::Logger::GetGlobLogger()->log();\
     }\
+
 
 #define INFOLOG(str, ...)\
     if(rocket::Logger::GetGlobLogger()->getLogLevel() <= rocket::Info)\
     {\
-        rocket::Logger::GetGlobLogger()->pushlog((new rocket::LogEvent(rocket::LogLevel::Info))->toString() + "[" + std::string(__FILE__) +":"+std::to_string( __LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+        rocket::Logger::GetGlobLogger()->pushlog((rocket::LogEvent(rocket::LogLevel::Info)).toString() \
+        + "[" + std::string(__FILE__) +":"+std::to_string( __LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
         rocket::Logger::GetGlobLogger()->log();\
     }\
     
+
 #define ERRORLOG(str, ...)\
-    if(rocket::Logger::GetGlobLogger()->getLogLevel() <= rocket::ERROR)\
-        rocket::Logger::GetGlobLogger()->pushlog((new rocket::LogEvent(rocket::LogLevel::ERROR))->toString() + "[" + std::string(__FILE__) +":"+std::to_string( __LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+    if(rocket::Logger::GetGlobLogger()->getLogLevel() <= rocket::Error)\
+    {\
+        rocket::Logger::GetGlobLogger()->pushlog((rocket::LogEvent(rocket::LogLevel::Error)).toString() + "[" + std::string(__FILE__) +":"+std::to_string( __LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
         rocket::Logger::GetGlobLogger()->log();\
     }\
 

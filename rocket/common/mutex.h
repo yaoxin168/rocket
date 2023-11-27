@@ -26,7 +26,7 @@ public:
         }
     }
     void unlock(){
-        if (!m_is_lock){
+        if (m_is_lock){
             m_mutex.unlock();
         }
     }

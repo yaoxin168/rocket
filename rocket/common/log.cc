@@ -85,12 +85,14 @@ std::string LogEvent::toString(){
 void Logger::pushlog(const std::string& msg){
     ScopeMutex<Mutex> lock(m_mutex);
     m_buffer.push(msg);
+    lock.unlock();
 }
 
 void Logger::log(){
     ScopeMutex<Mutex> lock(m_mutex);
     std::queue<std::string> tmp;
     m_buffer.swap(tmp);
+    lock.unlock();
     //m_buffer.swap(tmp)效率上优于std::swap(m_buffer, tmp)。但std::swap更通用,能适用到没有swap成员函数的场景。
     while (!tmp.empty()){
         std::string msg = tmp.front();
