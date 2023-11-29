@@ -60,6 +60,7 @@ EventLoop::EventLoop(){
     }
     //2.准备使用eventfd进行事件通知，用于唤醒阻塞在epoll_wait处的eventloop线程
     initWakeUpFdEvent();
+    initTimer();
     INFOLOG("线程%d创建eventloop成功", m_thread_id);
 
     t_current_eventloop = this;
@@ -73,8 +74,26 @@ EventLoop::~EventLoop(){
         delete m_wakeup_fd_event;
         m_wakeup_fd_event = NULL;
     }
+    if (m_timer)
+    {
+        delete m_timer;
+        m_timer = nullptr;
+    }
+    
     
 }
+
+void EventLoop::initTimer(){
+    m_timer = new Timer();
+    //这里不需要设置其可读事件的回调函数了，在Timer的构造函数里已经写好了
+    addEpollEvent(m_timer);//监听m_timer的可读事件
+}
+
+void EventLoop::addTimerEvent(TimerEvent::s_ptr event){//event是TimerEvent类型的共享指针
+    m_timer->addTimerEvent(event);
+}
+
+
 
 void EventLoop::initWakeUpFdEvent(){
     //成功：返回新的文件描述符. 失败：返回-1
@@ -103,6 +122,7 @@ void EventLoop::initWakeUpFdEvent(){
 
 
 void EventLoop::loop(){
+    m_stop_flag = false;
     while (!m_stop_flag)
     {
         ScopeMutex<Mutex> lock(m_mutex);
@@ -142,7 +162,7 @@ void EventLoop::loop(){
                 //当前事件可以处理，怎么处理：把FdEvent里记录的 该事件处理函数 添加到队列里，等待下一次eventloop解决
                 if (trigger_event.events & EPOLLIN){//如果是触发了读事件
                     DEBUGLOG("触发可读事件")
-                    
+
                     addTask(fd_event->handler(FdEvent::IN_EVENT));//取它的 读回调函数，将其放入队列中
                     DEBUGLOG("成功添加可读事件的回调函数")
                 }

@@ -1,5 +1,6 @@
 #include "rocket/common/util.h"
 #include <sys/syscall.h>
+#include <sys/time.h>
 
 namespace rocket {
 
@@ -20,6 +21,12 @@ pid_t getThreadId(){
         g_thread_id = syscall(SYS_gettid);//使用系统调用获取当前线程的线程ID
     }
     return g_thread_id;
+}
+
+int64_t getNowMs(){
+    timeval val;
+    gettimeofday(&val, nullptr);
+    return val.tv_sec*1000 + val.tv_usec / 1000;//返回毫秒数
 }
 
 

@@ -13,7 +13,7 @@ public:
         IN_EVENT = EPOLLIN,
         OUT_EVENT = EPOLLOUT
     };
-
+    FdEvent();
     FdEvent(int fd);
     ~FdEvent();
     //事件处理函数，根据传入的事件类型event_type返回相应的回调函数
